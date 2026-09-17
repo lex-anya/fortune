@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ask</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,520;1,9..144,420&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0F0B1A;
+    --tent: #1C1330;
+    --plum: #3A2559;
+    --mist: #6B4E93;
+    --gold: #D4AF6A;
+    --flame: #F2C879;
+    --parchment: #F1E7D4;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    height:100%;
+    width:100%;
+    background:var(--ink);
+    overflow:hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body{
+    font-family:'Fraunces', serif;
+    color:var(--parchment);
+  }
+
+  .stage{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    background: radial-gradient(ellipse 62% 52% at 50% 45%, var(--tent), var(--ink) 74%);
+    overflow:hidden;
+  }
+
+  .vignette{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background: radial-gradient(ellipse 78% 68% at 50% 48%, transparent 38%, rgba(0,0,0,0.78) 100%);
+    z-index:5;
+  }
+
+  .grain{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    opacity:0.05;
+    z-index:4;
+    background-image: repeating-linear-gradient(0deg, #000 0px, transparent 1px, transparent 2px),
+                       repeating-linear-gradient(90deg, #000 0px, transparent 1px, transparent 2px);
+  }
+
+  .mist{
+    position:absolute;
+    border-radius:50%;
+    filter: blur(70px);
+    opacity:0.3;
+    pointer-events:none;
+    mix-blend-mode: screen;
+  }
+  .mist-a{
+    width:70vmax; height:70vmax;
+    background: radial-gradient(circle, var(--plum), transparent 65%);
+    top:-20vmax; left:-20vmax;
+    animation: drift-a 30s ease-in-out infinite;
+  }
+  .mist-b{
+    width:60vmax; height:60vmax;
+    background: radial-gradient(circle, var(--mist), transparent 65%);
+    bottom:-22vmax; right:-16vmax;
+    animation: drift-b 36s ease-in-out infinite;
+  }
+  @keyframes drift-a{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(5vmax, 3vmax) scale(1.1); }
+  }
+  @keyframes drift-b{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(-4vmax, -5vmax) scale(1.06); }
+  }
+
+  /* exact center of the viewport, works at any screen size */
+  .center{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform: translate(-50%,-50%);
+    width:min(90vw, 90vh);
+    height:min(90vw, 90vh);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:2;
+  }
+
+  .fireflies{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .firefly{
+    position:absolute;
+    top:50%; left:50%;
+    width:6px; height:6px;
+    margin:-3px 0 0 -3px;
+    border-radius:50%;
+    background: var(--flame);
+    box-shadow: 0 0 8px 2px rgba(242,201,121,0.7);
+    opacity:0;
+    transform: translate(var(--sx), var(--sy)) scale(0.6);
+  }
+  .stage.summoning .firefly{
+    animation: converge 1.7s cubic-bezier(.3,.7,.3,1) forwards, twinkle 0.5s ease-in-out infinite;
+    animation-delay: var(--delay), 0s;
+  }
+  @keyframes converge{
+    0%{ opacity:0; transform: translate(var(--sx), var(--sy)) scale(0.5); }
+    12%{ opacity:1; }
+    80%{ opacity:1; }
+    100%{ opacity:0; transform: translate(0,0) scale(0.3); }
+  }
+  @keyframes twinkle{
+    0%,100%{ filter:brightness(1); }
+    50%{ filter:brightness(1.6); }
+  }
+
+  .burst{
+    position:absolute;
+    width:16px; height:16px;
+    border-radius:50%;
+    background: radial-gradient(circle, var(--flame), var(--gold) 40%, transparent 72%);
+    opacity:0;
+    transform: scale(0);
+  }
+  .stage.revealed .burst{
+    animation: burst-pop 1.1s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  @keyframes burst-pop{
+    0%{ opacity:0; transform: scale(0); }
+    35%{ opacity:1; transform: scale(1); }
+    100%{ opacity:0; transform: scale(11); }
+  }
+
+  .glow{
+    position:absolute;
+    width:min(70vw, 320px);
+    height:min(70vw, 320px);
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(212,175,106,0.32), transparent 68%);
+    opacity:0;
+    transition: opacity 1.8s ease;
+    pointer-events:none;
+  }
+  .stage.revealed .glow{ opacity:1; }
+
+  .fortune{
+    position:relative;
+    max-width:min(80vw, 400px);
+    text-align:center;
+    font-size:clamp(1.2rem, 4.2vw, 1.65rem);
+    font-weight:520;
+    line-height:1.45;
+    letter-spacing:0.01em;
+    color:var(--parchment);
+    opacity:0;
+    transform: scale(0.94);
+    text-shadow: 0 0 26px rgba(212,175,106,0.32);
+    z-index:3;
+  }
+  .stage.revealed .fortune{
+    animation: fortune-in 1.2s ease forwards;
+    animation-delay:0.35s;
+  }
+  @keyframes fortune-in{
+    to{ opacity:1; transform:scale(1); }
+  }
+
+  .hint{
+    position:fixed;
+    bottom: max(26px, env(safe-area-inset-bottom));
+    left:0; right:0;
+    text-align:center;
+    font-family: 'Fraunces', serif;
+    font-style:italic;
+    font-weight:340;
+    font-size:0.78rem;
+    color: var(--mist);
+    opacity:0;
+    transition: opacity 1.6s ease;
+    z-index:6;
+  }
+  .stage.revealed .hint{ opacity:0.5; }
+
+  @media (prefers-reduced-motion: reduce){
+    .mist, .firefly, .burst{ animation: none !important; }
+    .fortune{ transition: opacity 0.6s ease; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="mist mist-a"></div>
+    <div class="mist mist-b"></div>
+
+    <div class="center">
+      <div class="fireflies" id="fireflies"></div>
+      <div class="burst" id="burst"></div>
+      <div class="glow"></div>
+      <div class="fortune" id="fortune"></div>
+    </div>
+
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div class="hint">ask again, anytime</div>
+  </div>
+
+<script>
+  const fortunes = [
+    "The stars are aligned in your favor.",
+    "Yes \u2014 and sooner than you\u2019d expect.",
+    "It is written. Go for it.",
+    "A quiet yes. Don\u2019t overthink this one.",
+    "Trust this one. It\u2019s a green light.",
+    "The signs point to a bright yes.",
+    "Fate is nodding along with you.",
+    "The cards favour you today.",
+    "Yes, but be patient with the timing.",
+    "Everything is lining up nicely for this.",
+    "Not this time. The universe says wait.",
+    "The omens are murky. Hold off a little longer.",
+    "A gentle no \u2014 for now.",
+    "The stars are looking the other way today.",
+    "This isn\u2019t the moment. Ask again soon.",
+    "The cards are hesitant about this one.",
+    "Better to wait than to rush this.",
+    "Not yet \u2014 the timing isn\u2019t right.",
+    "Ask again when the moon is fuller.",
+    "The answer is hiding just behind you.",
+    "Some questions answer themselves, in time.",
+    "Outlook: hazy, but glittering.",
+    "Even fate needs a moment to think.",
+    "The mist is unclear today. Try again later.",
+    "The threads haven\u2019t finished weaving yet.",
+    "What you seek is closer than it looks.",
+    "The answer exists, but not in words yet.",
+    "Look twice \u2014 the first answer isn\u2019t the real one.",
+    "Time will unravel this, not you.",
+    "The cards are shuffling. Come back shortly.",
+    "The universe shrugs. Your call.",
+    "Even fortune tellers need coffee first. Try later.",
+    "This one\u2019s above my pay grade. Ask a friend.",
+    "The stars are on their lunch break.",
+    "Fate says maybe. Fate is also busy.",
+    "Somewhere, a crystal ball is also confused.",
+    "The spirits are giggling. That\u2019s not an answer.",
+    "Consult snacks. They rarely lie.",
+    "Whatever you decide, it will suit you.",
+    "You already know the answer. You\u2019re just checking."
+  ];
+
+  const stage = document.getElementById('stage');
+  const fortuneEl = document.getElementById('fortune');
+  const firefliesEl = document.getElementById('fireflies');
+
+  function spawnFireflies(n){
+    firefliesEl.innerHTML = '';
+    for(let i=0;i<n;i++){
+      const f = document.createElement('div');
+      f.className = 'firefly';
+      const angle = Math.random()*Math.PI*2;
+      const radius = 26 + Math.random()*22; // vmin-ish spread
+      const sx = Math.cos(angle)*radius;
+      const sy = Math.sin(angle)*radius;
+      f.style.setProperty('--sx', sx.toFixed(1)+'vmin');
+      f.style.setProperty('--sy', sy.toFixed(1)+'vmin');
+      f.style.setProperty('--delay', (Math.random()*0.5).toFixed(2)+'s');
+      const size = 4 + Math.random()*4;
+      f.style.width = size+'px';
+      f.style.height = size+'px';
+      firefliesEl.appendChild(f);
+    }
+  }
+
+  function pickFortune(){
+    return fortunes[Math.floor(Math.random()*fortunes.length)];
+  }
+
+  function consult(){
+    stage.classList.remove('summoning','revealed');
+    fortuneEl.textContent = '';
+    spawnFireflies(16);
+    void stage.offsetWidth; // restart animations
+
+    fortuneEl.textContent = pickFortune();
+    stage.classList.add('summoning');
+
+    setTimeout(()=>{
+      stage.classList.remove('summoning');
+      stage.classList.add('revealed');
+    }, 1750);
+  }
+
+  window.addEventListener('load', consult);
+  document.body.addEventListener('click', consult);
+  document.body.addEventListener('touchend', (e)=>{ e.preventDefault(); consult(); }, {passive:false});
+</script>
+</body>
+</html>
